@@ -1,3 +1,3 @@
-from django.shortcuts import render
+from ClinicApp.Controllers.custom_user import CustomUserController
 
 # Create your views here.
