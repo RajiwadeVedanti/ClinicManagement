@@ -1,10 +1,10 @@
 from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from ClinicApp.Repositories.custom_user import CustomUserRepository
 from ClinicApp.Serializers.token_serializer import get_token_pair
 from ClinicApp.helpers.model_search import get_or_none
+from ClinicApp.helpers.decorator import validate_user
 from ClinicApp.models import CustomUser
 
 class CustomUserController:
@@ -13,7 +13,7 @@ class CustomUserController:
         post_data = request.data
         success, message = CustomUserRepository.create_user(post_data)
         if not success:
-            JsonResponse({"code":400, "response":message})
+            return JsonResponse({"code":400, "response":message})
         return JsonResponse({"code":200, "response":message})
     
 
@@ -36,3 +36,25 @@ class CustomUserController:
             return JsonResponse({"code" :403, "response":"Invalid Credentials"})
         tokens = get_token_pair(user)
         return JsonResponse(tokens)
+    
+    @api_view(["GET"])
+    def get_users(request):
+        user_type = request.GET.get("user_type")
+        success, response = CustomUserRepository(is_superuser=False,many=True).get_users(user_type=user_type)
+        if not success:
+            return JsonResponse({"code":404, "response":response})
+        return JsonResponse({"code":200, "response":response})
+
+
+    @api_view(["GET"])
+    # @validate_user
+    def get_user_details(request):
+        # print("req user : ",request.user)
+        user_id = request.GET.get("user_id")
+        if not user_id:
+            return JsonResponse({"code":400, "response": "UserID is required"})
+        
+        success, response = CustomUserRepository(user_id=user_id).get_user_details()
+        if not success:
+            return JsonResponse({"code":404, "response":response})
+        return JsonResponse({"code":200, "response":response})

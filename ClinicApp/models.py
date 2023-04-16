@@ -106,7 +106,7 @@ class Appointment(models.Model):
     updated_date = ModificationDateTimeField()
 
     def __str__(self):
-        return self.appointment_by.mobile_number or ""
+        return self.user.mobile_number or ""
     
 class Instrument(models.Model):
     type_choice = (

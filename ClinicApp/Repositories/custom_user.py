@@ -1,11 +1,11 @@
 from datetime import datetime
 from django.db.models import QuerySet, Q
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.renderers import TemplateHTMLRenderer
 from ClinicApp.models import CustomUser
+from ClinicApp.Repositories.base import BaseRepository
+from ClinicApp.Serializers.root_serializer import CustomUserListSerializer, CustomUserDetailsSerializer
 
-class CustomUserRepository:
+
+class CustomUserRepository(BaseRepository):
     def __init__(
         self,
         *args,
@@ -14,9 +14,8 @@ class CustomUserRepository:
         item_list: QuerySet = None,
         **kwargs
     ):
-        super(CustomUserRepository, self).__init__(
-            *args, item=item, many=many, item_list=item_list, **kwargs
-        )   
+        super().__init__(*args, model=CustomUser, item=item, many=many, item_list=item_list, **kwargs)  
+
     
     @staticmethod
     def create_user(post_data):
@@ -68,4 +67,28 @@ class CustomUserRepository:
             print("Error: ",err)
             return False, "Something went wrong"
 
+    def get_users(self, user_type):
+        users = self.item_list
+
+        if not users:
+            return False, "No Record Found"
+
+        if user_type:
+            users = users.filter(user_type=user_type)
+
+            if not users:
+                return False, "No Record Found"
+
+        response = CustomUserListSerializer(users,many=True).data
+        return True, response
+    
+
+    def get_user_details(self):
+        user = self.item
+
+        if not user:
+            return False, "No Record Found"
+
+        response = CustomUserDetailsSerializer(user).data
+        return True, response
     
